@@ -1,0 +1,262 @@
+// ============================================================
+// Student Management & Analysis System
+// University JavaScript Assignment
+// ============================================================
+
+class Student {
+    constructor(id, name, grades, attendance) {
+        this.id = id;
+        this.name = name;
+        this.grades = grades;
+        this.attendance = attendance;
+    }
+
+    // Find the average of the three subjects.
+    calculateAverage() {
+        const total = this.grades.reduce((sum, grade) => sum + grade, 0);
+        return total / this.grades.length;
+    }
+
+    // Convert the numerical average into a letter grade.
+    getGrade(average) {
+        if (average >= 90) {
+            return "A";
+        } else if (average >= 80) {
+            return "B";
+        } else if (average >= 70) {
+            return "C";
+        } else if (average >= 60) {
+            return "D";
+        } else if (average >= 50) {
+            return "E";
+        } else {
+            return "F";
+        }
+    }
+
+    // A student needs both a sufficient average and attendance.
+    getFinalResult(average) {
+        if (average >= 50 && this.attendance >= 75) {
+            return "Passed";
+        } else {
+            return "Needs Review";
+        }
+    }
+}
+
+
+// ------------------------------------------------------------
+// 1. Students Data
+// ------------------------------------------------------------
+
+const studentsList = [
+    new Student(73142, "Youssef Adel", [39, 40, 41], 88),
+    new Student(84627, "Mariam Hassan", [47, 48, 52], 72),
+    new Student(59218, "Omar Khaled", [87, 91, 86], 94),
+    new Student(91436, "Laila Mostafa", [72, 68, 80], 68)
+];
+
+
+// ------------------------------------------------------------
+// 2. General Students Report
+// ------------------------------------------------------------
+
+console.log("==============================================");
+console.log("       STUDENT MANAGEMENT SYSTEM");
+console.log("==============================================");
+
+const studentsReport = studentsList.map((student) => {
+    const average = student.calculateAverage();
+
+    return {
+        ID: student.id,
+        Name: student.name,
+        "Subject 1": student.grades[0],
+        "Subject 2": student.grades[1],
+        "Subject 3": student.grades[2],
+        "Attendance (%)": student.attendance,
+        "Original Average": Number(average.toFixed(2)),
+        "Letter Grade": student.getGrade(average),
+        "Final Result": student.getFinalResult(average)
+    };
+});
+
+console.log("\n1. COMPLETE STUDENTS REPORT");
+console.table(studentsReport);
+
+
+// ------------------------------------------------------------
+// 3. Grace Marks Committee
+// ------------------------------------------------------------
+
+// Select students whose original averages are from 40 to 49.
+const strugglingStudents = studentsList.filter((student) => {
+    const average = student.calculateAverage();
+
+    return average >= 40 && average <= 49;
+});
+
+console.log("\n==============================================");
+console.log("          GRACE MARKS COMMITTEE");
+console.log("==============================================");
+
+console.log("\n2. STUDENTS SELECTED FOR GRACE MARKS");
+
+console.table(
+    strugglingStudents.map((student) => ({
+        ID: student.id,
+        Name: student.name,
+        "Original Average": Number(student.calculateAverage().toFixed(2))
+    }))
+);
+
+
+// Add 5 marks to each selected student's average only.
+// The original students and their subject grades remain unchanged.
+const graceMarkResults = strugglingStudents.map((student) => {
+    const originalAverage = student.calculateAverage();
+
+    const newAverage = Math.min(100, originalAverage + 5);
+
+    return {
+        id: student.id,
+        name: student.name,
+        grades: [...student.grades],
+        attendance: student.attendance,
+        originalAverage: originalAverage,
+        newAverage: newAverage,
+        originalGrade: student.getGrade(originalAverage),
+        updatedGrade: student.getGrade(newAverage),
+        updatedResult: student.getFinalResult(newAverage)
+    };
+});
+
+
+// ------------------------------------------------------------
+// 4. Results After Grace Marks
+// ------------------------------------------------------------
+
+console.log("\n3. GRACE MARKS RESULTS");
+
+console.table(
+    graceMarkResults.map((student) => ({
+        ID: student.id,
+        Name: student.name,
+        "Original Average": Number(student.originalAverage.toFixed(2)),
+        "New Average": Number(student.newAverage.toFixed(2)),
+        "Original Grade": student.originalGrade,
+        "Updated Grade": student.updatedGrade,
+        "Attendance (%)": student.attendance,
+        "Updated Result": student.updatedResult
+    }))
+);
+
+
+// ------------------------------------------------------------
+// 5. Committee Calculations
+// ------------------------------------------------------------
+
+// Calculate the sum of all new averages.
+const sumOfNewAverages = graceMarkResults.reduce(
+    (total, student) => total + student.newAverage,
+    0
+);
+
+// Calculate the average after grace marks.
+// Handle an empty list safely to avoid division by zero.
+const averageAfterGraceMarks = graceMarkResults.length > 0
+    ? sumOfNewAverages / graceMarkResults.length
+    : null;
+
+console.log("\n==============================================");
+console.log("           COMMITTEE SUMMARY");
+console.log("==============================================");
+
+console.log(
+    "Number of struggling students:",
+    strugglingStudents.length
+);
+
+console.log(
+    "Sum of new averages:",
+    Number(sumOfNewAverages.toFixed(2))
+);
+
+console.log(
+    "Average after grace marks:",
+    averageAfterGraceMarks === null
+        ? "N/A - No struggling students"
+        : Number(averageAfterGraceMarks.toFixed(2))
+);
+
+
+// ------------------------------------------------------------
+// 6. Data Preservation Verification
+// ------------------------------------------------------------
+
+// Check that the original student data has not been modified.
+const originalDataPreserved = studentsList.every((student) => {
+    const matchingResult = graceMarkResults.find(
+        (result) => result.id === student.id
+    );
+
+    if (!matchingResult) {
+        return true;
+    }
+
+    return (
+        student.calculateAverage() === matchingResult.originalAverage &&
+        student.grades.every(
+            (grade, index) => grade === matchingResult.grades[index]
+        )
+    );
+});
+
+console.log("\n4. DATA PRESERVATION CHECK");
+console.log(
+    "Original student averages and subject grades unchanged:",
+    originalDataPreserved ? "YES" : "NO"
+);
+
+
+// ------------------------------------------------------------
+// 7. Final Verification
+// ------------------------------------------------------------
+
+console.log("\n==============================================");
+console.log("          FINAL VERIFICATION");
+console.log("==============================================");
+
+console.log("Total students:", studentsList.length);
+
+console.log(
+    "Exactly 3 grades per student:",
+    studentsList.every((student) => student.grades.length === 3)
+);
+
+console.log(
+    "All selected averages are between 40 and 49:",
+    strugglingStudents.every((student) => {
+        const average = student.calculateAverage();
+        return average >= 40 && average <= 49;
+    })
+);
+
+console.log(
+    "Attendance below 75% never results in Passed:",
+    studentsList
+        .filter((student) => student.attendance < 75)
+        .every((student) => student.getFinalResult(student.calculateAverage()) !== "Passed")
+);
+
+console.log(
+    "Grace marks do not exceed an average of 100:",
+    graceMarkResults.every((student) => student.newAverage <= 100)
+);
+
+console.log(
+    "Original data preserved:",
+    originalDataPreserved
+);
+
+console.log("\n========== END OF SYSTEM REPORT ==========");
